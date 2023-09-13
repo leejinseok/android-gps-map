@@ -72,4 +72,8 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
+
+    // FusedLocationProviderClient
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+
 }
