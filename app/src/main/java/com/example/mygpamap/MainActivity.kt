@@ -1,6 +1,7 @@
 package com.example.mygpamap
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -42,6 +44,15 @@ class MainActivity : ComponentActivity() {
                 onResult = {
                     granted.value = it
                 })
+
+
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                granted.value = true
+            }
 
             if (granted.value) {
                 MyMap()
@@ -100,8 +111,8 @@ fun MyMap() {
 
     AndroidView(factory = {
         mapView
-    }, update = { mapView ->
-        mapView.getMapAsync { googleMap ->
+    }, update = {
+        it.getMapAsync { googleMap ->
             val sydney = LatLng(-34.0, 151.0)
             googleMap.addMarker(
                 MarkerOptions().position(sydney).title("Marker in Sydney")
