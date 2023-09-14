@@ -24,6 +24,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.LatLng
@@ -55,13 +56,14 @@ class MainActivity : ComponentActivity() {
             }
 
             if (granted.value) {
-                MyMap()
+                val viewModel = ViewModelProvider(this)[MainViewModel::class.java]
+                lifecycle.addObserver(viewModel.locationListener)
+                MyMap(viewModel)
             } else {
                 RequestPermissionScreen {
                     launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                 }
             }
-
         }
     }
 }
@@ -81,13 +83,15 @@ fun RequestPermissionScreen(onClickRequestPermission: () -> Unit) {
 }
 
 @Composable
-fun MyMap() {
+fun MyMap(viewModel: MainViewModel) {
     val context = LocalContext.current
-    val lifeCycleOwner = LocalLifecycleOwner.current
     val mapView = remember {
         MapView(context)
     }
 
+    val mapState = viewModel.state.value
+
+    val lifeCycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifeCycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
@@ -113,11 +117,11 @@ fun MyMap() {
         mapView
     }, update = {
         it.getMapAsync { googleMap ->
-            val sydney = LatLng(-34.0, 151.0)
-            googleMap.addMarker(
-                MarkerOptions().position(sydney).title("Marker in Sydney")
-            )
-            googleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+            mapState.location?.let { location ->
+                val latLng = LatLng(location.latitude, location.longitude)
+                googleMap.addMarker(MarkerOptions().position(latLng).title("Here!"))
+                googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng))
+            }
         }
     })
 }
